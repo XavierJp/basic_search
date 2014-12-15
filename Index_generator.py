@@ -4,17 +4,17 @@ import re
 
 # Class
 # ------------------------------
-class Raw_file:
+class Index_generator:
     """
     Represent a Raw_file
 
     """
 
-    def __init__(self, name, path, load_bool):
-        self.my_name = name
+    def __init__(self):
         self.my_config = Config()
         self.index = Index()
-        self.load_file(path, load_bool)
+        self.my_dict = {}
+        self.load_file(self.my_config.path)
 
     def __str__(self):
         return my_dict
@@ -27,35 +27,37 @@ class Raw_file:
 
     def load_file(self, path):
         lines = self.open_file(path)
-        self.parse(lines)
+        self.make_index(lines)
 
-    def parse(self, lines):
+    def make_index(self, lines):
         doc_id = ''
         doc_mark = ''
         for i, l in enumerate(lines):
             if l[:3] == '.I ':
                 doc_id = l[3:]
                 doc_mark = '.I '
+                self.my_dict[doc_id] = {}
             else:
                 if l[:2] in self.my_config.k_word:
                     doc_mark = l[:2]
+                    if doc_mark in self.my_config.used_k_word:
+                        self.my_dict[doc_id][doc_mark] = ""
                 else:
                     if doc_mark in self.my_config.used_k_word:
                         self.tokenize(l, doc_id)
+                        self.my_dict[doc_id][doc_mark] += l
 
     def tokenize(self, str, doc_id):
         wordsBuffer = re.findall(r"[a-zA-Z0-9]+",str)
-        for e in reversed(range(0, len(wordsBuffer))):
-            wordsBuffer[e] = wordsBuffer[e].lower()
-            if self.compare(wordsBuffer[e]):
-                wordsBuffer.pop(e)
-            else:
-                # doc_index
-                self.add_to_index(self.index.doc_i, doc_id, wordsBuffer[e])
-                # word_index
-                self.add_to_index(self.index.word_i, wordsBuffer[e], doc_id)
+        for element in wordsBuffer:
+            element = element.lower()
+            if not self.compare(element):
+                # populate doc_index
+                self.populate_index(self.index.doc_i, doc_id, element)
+                # populate word_index
+                self.populate_index(self.index.word_i, element, doc_id)
 
-    def add_to_index(self, index, key1, key2):
+    def populate_index(self, index, key1, key2):
         if not key1 in index:
             index[key1]={}
         if key2 in index[key1]:
@@ -67,3 +69,13 @@ class Raw_file:
         if element in self.my_config.words:
             return True
         return False
+
+    def search_by_doc_id(self, doc_id,k_words):
+        if doc_id in self.my_dict:
+            for k in k_words:
+                if k in self.my_dict[doc_id]:
+                    return self.my_dict[doc_id][k]
+                else:
+                    return ""
+        else:
+            return "Sorry, there is no :"+doc_id+" document"

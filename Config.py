@@ -8,6 +8,7 @@ class Config:
 
     def __init__(self):
         self.common_words_path = 'cacm-2-/common_words'
+        self.path = 'cacm-2-/cacm.all'
         self.k_word = ['.T','.W','.B','.A','.N','.X','.K']
         self.used_k_word = ['.T','.W','.K']
         self.words = self.common_words(self.common_words_path)
@@ -21,5 +22,5 @@ class Config:
         r.close()
         dict_w = {}
         for w in words:
-            dict_w[w]=1
+            dict_w[w]=[]
         return dict_w
