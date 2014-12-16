@@ -1,33 +1,36 @@
 from Config import Config
-from Index import Index
+from collections import defaultdict
 import re
 
 # Class
 # ------------------------------
 class Index_generator:
     """
-    Represent a Raw_file
+    Generates an Index based on a Raw_file
 
     """
 
     def __init__(self):
         self.my_config = Config()
-        self.index = Index()
+        self.doc_max_tf = {}
+        self.word_doc_index = defaultdict(str)
+        self.doc_word_index = defaultdict(str)
         self.my_dict = {}
         self.load_file(self.my_config.path)
+        self.doc_number = len(self.doc_word_index.keys())
 
     def __str__(self):
         return my_dict
+
+    def load_file(self, path):
+        lines = self.open_file(path)
+        self.make_index(lines)
 
     def open_file(self, path):
         f = open(path,'r')
         data = f.read().splitlines()
         f.close()
         return data
-
-    def load_file(self, path):
-        lines = self.open_file(path)
-        self.make_index(lines)
 
     def make_index(self, lines):
         doc_id = ''
@@ -36,12 +39,10 @@ class Index_generator:
             if l[:3] == '.I ':
                 doc_id = l[3:]
                 doc_mark = '.I '
-                self.my_dict[doc_id] = {}
+                self.my_dict[doc_id] = defaultdict(str)
             else:
                 if l[:2] in self.my_config.k_word:
                     doc_mark = l[:2]
-                    if doc_mark in self.my_config.used_k_word:
-                        self.my_dict[doc_id][doc_mark] = ""
                 else:
                     if doc_mark in self.my_config.used_k_word:
                         self.tokenize(l, doc_id)
@@ -53,17 +54,15 @@ class Index_generator:
             element = element.lower()
             if not self.compare(element):
                 # populate doc_index
-                self.populate_index(self.index.doc_i, doc_id, element)
-                # populate word_index
-                self.populate_index(self.index.word_i, element, doc_id)
+                self.populate_index(self.doc_word_index, doc_id, element)
+                self.populate_index(self.word_doc_index, element, doc_id)
+
 
     def populate_index(self, index, key1, key2):
         if not key1 in index:
-            index[key1]={}
-        if key2 in index[key1]:
-            index[key1][key2] += 1
-        else:
-            index[key1][key2] = 1
+            index[key1] = defaultdict(int)
+        index[key1][key2] += 1
+
 
     def compare(self, element):
         if element in self.my_config.words:
