@@ -28,7 +28,7 @@ class Vect_query(Query):
         return False
 
     #project query_vector over every doc_vector
-    def project_index(self):
+    def execute_query(self):
         results_temp=defaultdict(float)
         for doc_id in self.my_index.raw_data.doc_word_index.keys():
             #cosinus(vecteur-requete,vecteur-document_courant)

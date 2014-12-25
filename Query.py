@@ -16,11 +16,14 @@ class Query:
         self.my_query = query
         self.config = Config()
         self.indexed_query = self.indexize(query)
-        self.results = self.project_index()
-
+        self.results = self.execute_query()
 
     @abstractmethod
     def indexize(self, query):
+        pass
+
+    @abstractmethod
+    def execute_query(self):
         pass
 
     def compare(self, element):

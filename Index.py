@@ -17,7 +17,7 @@ class Index:
         self.reversed_index = self.reverse_index()
 
     def __str__(self):
-        return self.reverted_index
+        return str(self.reversed_index)
 
     def reverse_index(self):
         rev_index = defaultdict(str)
