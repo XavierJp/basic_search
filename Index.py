@@ -3,6 +3,7 @@ from Index_generator import Index_generator
 from math import log
 from collections import defaultdict
 import operator
+
 # Class
 # ------------------------------
 class Index:
