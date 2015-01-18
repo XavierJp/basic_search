@@ -20,6 +20,7 @@ class Vect_query(Query):
     """
 
     def indexize(self, query):
+        """ trnasform the query from a string to a word index """
         query_index = defaultdict(int)
         wordsBuffer = re.findall(r"[a-zA-Z0-9]+",query)
         for word in wordsBuffer:
@@ -29,12 +30,14 @@ class Vect_query(Query):
         return query_index
 
     def compare(self, element):
+        """ compare a word to the list of meaningless word """
         if element in self.config.words:
             return True
         return False
 
     #project query_vector over every doc_vector
     def execute_query(self):
+        """ execute the query search and return results """
         results_temp=defaultdict(float)
         doc_list = defaultdict(dict)
         for word in self.indexed_query:
@@ -49,6 +52,11 @@ class Vect_query(Query):
         return doc_list
 
     def ponderation(self, tf, df ,pond_type):
+        """ 
+            return ponderation calculation
+            either 'w' 
+            or 'tf-idf'
+        """
         if pond_type=='tf_idf':
             return self.tf_log(tf)*self.idf(df)
         elif pond_type=='w':
@@ -58,6 +66,7 @@ class Vect_query(Query):
 
     #calculates cosinus between two vectors of w_space
     def cosinus(self, indexed_query, indexed_doc, doc_id, pond_type):
+        """ compute cosinus calculation """
         p = 0
         norm_q = 0
         for w, w_freq in indexed_query.iteritems():
@@ -71,6 +80,7 @@ class Vect_query(Query):
             return 0
 
     def norm(self, doc_id, pond_type):
+        """ compute norm """
         n=0
         for w , freq in self.my_index.index[doc_id].iteritems():
             if pond_type == 'tf_idf':

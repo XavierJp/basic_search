@@ -18,10 +18,11 @@ class Bool_query(Query):
     """
 
     def indexize(self, query):
-        """ tokenize query and turn it into an index or a tree """
+        """ tokenizes query and turn it into an index or a tree """
         return query
 
     def execute_query(self):
+        """ executes boolean query and returns results as a dict """
         res_temp = self.reccur_analysis(self.indexed_query)
         results = {}
         for r in res_temp:
@@ -29,6 +30,7 @@ class Bool_query(Query):
         return results
         
     def reccur_analysis(self, q_str):
+        """ analyses string and returns """
         if q_str[:3]=='AND':
             if '(' in q_str[3:]:
                 q = self.split_str(q_str[3:])
@@ -56,9 +58,11 @@ class Bool_query(Query):
             return self.get_results(q_str)
 
     def call_compare_lists(self, elmnt1, elmnt2, k):
+        """ helper function to simplify recurr_analysis funct """
         return self.compare_lists(self.reccur_analysis(elmnt1), self.reccur_analysis(elmnt2), k)
 
     def split_str(self, entire_str):
+        """ split a string in two part based on ',' """
         entire_str = entire_str[1:len(entire_str)-1]
         parenthesis = []
         for pos in xrange(0,len(entire_str)):
@@ -68,6 +72,7 @@ class Bool_query(Query):
         return [entire_str[:pos], entire_str[pos+1:]]
 
     def analize_structure(self, struct_list):
+        """ search for the right ',' """
         temp_list = struct_list
         pos = len(struct_list)-1
         while pos !=0:
@@ -85,6 +90,7 @@ class Bool_query(Query):
         return temp_list[0][1]
 
     def compare_lists(self, doc_list_a, doc_list_b, logic):
+        """ list comparison either intersect, difference or union"""
         if logic == 0:
             if doc_list_b[-1]=='!' and len(doc_list_b) > 0:
                 temp_res = list(set(doc_list_a).difference(doc_list_b[-1:]))
@@ -101,9 +107,8 @@ class Bool_query(Query):
                 temp_res = list(set(doc_list_b).union(doc_list_a))
         return temp_res
 
-        
-
     def get_results(self, word):
+        """ returns all docID a word belongs to """
         if word in self.my_index.reversed_index.keys():
             res = self.my_index.reversed_index[str(word)].keys()
             if 'df' in res:
