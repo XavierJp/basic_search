@@ -36,7 +36,7 @@ class Vect_query(Query):
         return False
 
     #project query_vector over every doc_vector
-    def execute_query(self):
+    def execute_query(self, ponderation):
         """ execute the query search and return results """
         results_temp=defaultdict(float)
         doc_list = defaultdict(dict)
@@ -46,7 +46,7 @@ class Vect_query(Query):
                     if doc != 'df':
                         df = self.my_index.reversed_index[word]['df']
                         tf = self.my_index.reversed_index[word][doc]
-                        doc_list[doc][word] = self.ponderation(tf, df, 'w')
+                        doc_list[doc][word] = self.ponderation(tf, df, ponderation)
         for doc in doc_list:
             doc_list[doc]['cos'] = self.cosinus(self.indexed_query, doc_list[doc], doc, 'tf_idf') 
         return doc_list

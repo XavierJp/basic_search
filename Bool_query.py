@@ -21,7 +21,7 @@ class Bool_query(Query):
         """ tokenizes query and turn it into an index or a tree """
         return query
 
-    def execute_query(self):
+    def execute_query(self, ponderation):
         """ executes boolean query and returns results as a dict """
         res_temp = self.reccur_analysis(self.indexed_query)
         results = {}

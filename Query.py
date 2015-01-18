@@ -15,11 +15,11 @@ class Query:
     """
     __metaclass__ = ABCMeta
 
-    def __init__(self, query, index):
+    def __init__(self, query, index, ponderation='tf-idf'):
         self.my_index = index
         self.config = Config()
         self.indexed_query = self.indexize(query)
-        self.results = self.execute_query()
+        self.results = self.execute_query(ponderation)
 
     def __str__(self):
         return results
