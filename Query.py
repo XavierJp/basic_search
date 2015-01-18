@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+
+# Imports
+# -------
 from Config import Config
 import re
 from abc import ABCMeta, abstractmethod
@@ -6,17 +10,19 @@ from abc import ABCMeta, abstractmethod
 
 class Query:
     """
-    Represent a query - Abstract class
+    Represent a query - Abstract class. Two inherited class : Boolean and Vectorial query
 
     """
     __metaclass__ = ABCMeta
 
     def __init__(self, query, index):
         self.my_index = index
-        self.my_query = query
         self.config = Config()
         self.indexed_query = self.indexize(query)
         self.results = self.execute_query()
+
+    def __str__(self):
+        return results
 
     @abstractmethod
     def indexize(self, query):

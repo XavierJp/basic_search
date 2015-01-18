@@ -1,7 +1,12 @@
-from Query import Query
-from Index_generator import Index_generator
-from math import log
+# -*- coding: utf-8 -*-
+
+# Imports
+# -------
+from math import log10
+from Config import Config
 from collections import defaultdict
+import re
+
 import operator
 
 # Class
@@ -13,42 +18,94 @@ class Index:
     """
 
     def __init__(self):
-        self.raw_data = Index_generator()
-        self.w_max = self.w_max()
-        self.reversed_index = self.reverse_index()
+        self.my_config = Config()
+        self.reversed_index = {}
+        self.my_dict = {} 
+        self.index = {}
+        self.load_file(self.my_config.path)
+        self.N = len(self.my_dict.keys())
 
     def __str__(self):
-        return str(self.reversed_index)
+        return reversed_index
 
-    def reverse_index(self):
-        rev_index = defaultdict(str)
-        for word in self.raw_data.word_doc_index.keys():
-            rev_index[word] = defaultdict(str)
-            for doc_id in self.raw_data.word_doc_index[word].keys():
-                rev_index[word][doc_id] = defaultdict(str)
-                w = self.raw_data.word_doc_index[word][doc_id]
-                rev_index[word][doc_id]['w'] = w
-                rev_index[word][doc_id]['w_n'] = float(w)/float(self.w_max[doc_id])
-                rev_index[word][doc_id]['tf_idf'] = self.tf_idf(word, w)
-                pass
-        return rev_index
+    def load_file(self, path):
+        lines = self.open_file(path)
+        self.make_index(lines)
 
-    def w_max(self):
-        w_max_dict = defaultdict(int)
-        for doc_id in self.raw_data.doc_word_index.keys():
-            w_max = max(self.raw_data.doc_word_index[doc_id].values())
-            w_max_dict[doc_id] = w_max
-        return w_max_dict
+    def open_file(self, path):
+        f = open(path,'r')
+        data = f.read().splitlines()
+        f.close()
+        return data
 
-    #tf_idf
-    def tf_idf(self, word, frq):
-        return self.tf(frq)*self.idf(len(self.raw_data.word_doc_index[word].keys()), self.raw_data.doc_number)
+    def make_index(self, lines):
+        """ convert raw doc into an index of words and docIDs """
+        doc_id = ''
+        doc_mark = ''
+        for i, l in enumerate(lines):
+            if l[:3] == '.I ':
+                doc_id = l[3:]
+                doc_mark = '.I '
+                self.my_dict[doc_id] = defaultdict(str)
+            else:
+                if l[:2] in self.my_config.k_word:
+                    doc_mark = l[:2]
+                else:
+                    if doc_mark in self.my_config.used_k_word:
+                        self.tokenize(l, doc_id)
+                        self.my_dict[doc_id][doc_mark] += l
 
-    #Log(inverse de la proportion de documents qui contiennent le terme)
-    def idf(self, dt, N):
-        return log(float(N)/float(dt))
+    def tokenize(self, str, doc_id):
+        """ convert a string into a tokenized string (indexed) """
+        wordsBuffer = re.findall(r"[a-zA-Z0-9]+",str)
+        for word in wordsBuffer:
+            word = word.lower()
+            if not self.compare(word):
+                # populate doc_index
+                self.populate_index(self.reversed_index, word, doc_id)
+                self.populate_index(self.index, doc_id, word)
 
-    # Nb occurrences de ce terme dans le document
-    def tf(self, frq):
-        if frq >0: return 1 + log(frq)
-        return 0
+    def populate_index(self, index, k1, k2):
+        """ generic function to create index. Index and reversed index have the same structure """
+        if not k1 in index:
+            index[k1] = defaultdict(int)
+        index[k1][k2] += 1
+        index[k1]['df'] += 1
+
+    def compare(self, element):
+        """ test if a word belong to common words list. If so let's remove it (not relevant)! """
+        if element in self.my_config.words:
+            return True
+        return False
+
+    def get_title_by_doc_id(self, doc_id, k_words):
+        """ from a docID returns corresponding element (example: '.T' is for title) """
+        if doc_id in self.my_dict.keys():
+            for k in k_words:
+                if k in self.my_dict[doc_id]:
+                    return '- '+str(doc_id)+' '+self.my_dict[doc_id][k]
+        return "Sorry, there is no document: "+str(doc_id)
+
+    def search_a_doc_id(self, doc_id):
+        """ returns results for a given docID """
+        try:
+            boolean = int(doc_id)
+        except ValueError:
+            return "\n /!\ Doc_id must be a number ! \n"
+
+        if boolean:
+            if doc_id in self.my_dict.keys():
+                return self.get_title_by_doc_id(doc_id, ['.T'])+'\n'
+            else:
+                return "Sorry, there is no document: "+str(doc_id)
+
+    def search_a_word(self, input_word):
+        """ returns a list of doc_id where word occurs """
+        if input_word in self.reversed_index:
+            string = ''
+            for doc_id in self.reversed_index[input_word]:
+                if doc_id!='df':
+                    string += self.get_title_by_doc_id(doc_id, ['.T'])+'\n'
+        return string
+
+
