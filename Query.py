@@ -8,9 +8,11 @@ from abc import ABCMeta, abstractmethod
 # Class
 # ------------------------------
 
+
 class Query:
     """
-    Represent a query - Abstract class. Two inherited class : Boolean and Vectorial query
+    Represent a query - Abstract class.
+    Two inherited class : Boolean and Vectorial query
 
     """
     __metaclass__ = ABCMeta

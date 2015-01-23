@@ -11,6 +11,8 @@ import operator
 
 # Class
 # ------------------------------
+
+
 class Index:
     """
     Represent an Index
@@ -20,7 +22,7 @@ class Index:
     def __init__(self):
         self.my_config = Config()
         self.reversed_index = {}
-        self.my_dict = {} 
+        self.my_dict = {}
         self.index = {}
         self.load_file(self.my_config.path)
         self.N = len(self.my_dict.keys())
@@ -33,7 +35,7 @@ class Index:
         self.make_index(lines)
 
     def open_file(self, path):
-        f = open(path,'r')
+        f = open(path, 'r')
         data = f.read().splitlines()
         f.close()
         return data
@@ -55,9 +57,9 @@ class Index:
                         self.tokenize(l, doc_id)
                         self.my_dict[doc_id][doc_mark] += l
 
-    def tokenize(self, str, doc_id):
+    def tokenize(self, string, doc_id):
         """ convert a string into a tokenized string (indexed) """
-        wordsBuffer = re.findall(r"[a-zA-Z0-9]+",str)
+        wordsBuffer = re.findall(r"[a-zA-Z0-9]+", string)
         for word in wordsBuffer:
             word = word.lower()
             if not self.compare(word):
@@ -66,20 +68,29 @@ class Index:
                 self.populate_index(self.index, doc_id, word)
 
     def populate_index(self, index, k1, k2):
-        """ generic function to create index. Index and reversed index have the same structure """
-        if not k1 in index:
+        """ 
+            generic function to create index.
+            Index and reversed index have the same structure
+        """
+        if k1 not in index:
             index[k1] = defaultdict(int)
         index[k1][k2] += 1
         index[k1]['df'] += 1
 
     def compare(self, element):
-        """ test if a word belong to common words list. If so let's remove it (not relevant)! """
+        """ 
+            test if a word belong to common words list.
+            If so let's remove it (not relevant)!
+        """
         if element in self.my_config.words:
             return True
         return False
 
     def get_title_by_doc_id(self, doc_id, k_words):
-        """ from a docID returns corresponding element (example: '.T' is for title) """
+        """ 
+            from a docID returns corresponding element
+            (example: '.T' is for title)
+        """
         if doc_id in self.my_dict.keys():
             for k in k_words:
                 if k in self.my_dict[doc_id]:
@@ -104,8 +115,6 @@ class Index:
         if input_word in self.reversed_index:
             string = ''
             for doc_id in self.reversed_index[input_word]:
-                if doc_id!='df':
+                if doc_id != 'df':
                     string += self.get_title_by_doc_id(doc_id, ['.T'])+'\n'
         return string
-
-
