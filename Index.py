@@ -94,7 +94,7 @@ class Index:
         if doc_id in self.my_dict.keys():
             for k in k_words:
                 if k in self.my_dict[doc_id]:
-                    return '- '+str(doc_id)+' '+self.my_dict[doc_id][k]
+                    return self.my_dict[doc_id][k]
         return "Sorry, there is no document: "+str(doc_id)
 
     def search_a_doc_id(self, doc_id):
@@ -106,7 +106,7 @@ class Index:
 
         if boolean:
             if doc_id in self.my_dict.keys():
-                return self.get_title_by_doc_id(doc_id, ['.T'])+'\n'
+                return str(doc_id)+': '+self.get_title_by_doc_id(doc_id, ['.T'])+'\n'
             else:
                 return "Sorry, there is no document: "+str(doc_id)
 
@@ -116,5 +116,5 @@ class Index:
             string = ''
             for doc_id in self.reversed_index[input_word]:
                 if doc_id != 'df':
-                    string += self.get_title_by_doc_id(doc_id, ['.T'])+'\n'
+                    string += '- '+str(doc_id)+': '+self.get_title_by_doc_id(doc_id, ['.T'])+'\n'
         return string
