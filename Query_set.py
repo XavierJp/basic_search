@@ -49,7 +49,8 @@ class Query_set:
         res = self.load_file('cacm-2-/qrels.text')
         rel_index = defaultdict(list)
         for l in res:
-            q_id = int(l[:2])
+            # remove unwanted 0
+            q_id = str(int(l[:2]))
             res_temp = str(int(l[3:7]))
             rel_index[q_id].append(res_temp)
         return rel_index

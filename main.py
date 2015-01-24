@@ -9,6 +9,8 @@ import os
 from Config import Config
 from Index import Index
 from Vect_query import Vect_query
+from Measures import Measures
+from Query_set import Query_set
 from Bool_query import Bool_query
 import operator
 
@@ -50,8 +52,9 @@ def execute_query(cacm_index, input_var):
         result = Vect_query(query_input(VECT), cacm_index, 'tf_idf')
     elif input_var == '5':
         result = Vect_query(query_input(VECT), cacm_index, 'w')
-    elif input_var in ['6']:
-        print 'coming soon...'
+    elif input_var == '6':
+        q_set = Query_set()
+        print Measures(cacm_index, q_set)
 
     tps_q_fin = time.clock()
 

@@ -2,7 +2,10 @@
 
 # Imports
 # -------
-
+from Index import Index
+from Vect_query import Vect_query
+from Query_set import Query_set
+from Bool_query import Bool_query
 
 # Class
 # ------------------------------
@@ -18,28 +21,28 @@ class Measures:
         self.index = index
 
     def __str__(self):
-        return self.aggregates_results()
+        return str(self.aggregates_results())
 
     def aggregates_results(self):
         """ aggregates rappel and precision over all dataset """
         compared_res = {}
-        for q_id, q_str in self.set.queries.items():
+        for q_id in self.set.queries.keys():
             compared_res[q_id] = self.computes_measures(q_id)
         return compared_res
 
     def computes_measures(self, q_id):
         """ calculates rappel and precision for tf idf and simple vectoriel """
         query = self.set.queries[q_id]
-        q_tf = Vect_query(query, index, 'tf_idf').results
-        q_w = Vect_query(query, index, 'w').results
-        q_set = self.set.results[q_id]
+        q_tf = Vect_query(query, self.index, 'tf_idf').results.keys()
+        q_w = Vect_query(query, self.index, 'w').results.keys()
+        q_set = self.set.results[str(q_id)]
         return {'w': self.rappel_precision(q_set, q_w), 'tf_idf': self.rappel_precision(q_set, q_tf)}
 
     def fn(self, q_set, q_res):
         """ false neg. Nb of element in q_set and not in q_res """
         return len(set(q_set).difference(q_res))
 
-    def fp(self):
+    def fp(self, q_set, q_res):
         """ false pos. Nb of element in q_res and not in q_set """
         return len(set(q_res).difference(q_set))
 
@@ -58,4 +61,4 @@ class Measures:
 # Testing
 # ------------------------------
 if __name__ == "__main__":
-    return ""
+    print 'hello'
