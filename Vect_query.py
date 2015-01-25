@@ -48,7 +48,7 @@ class Vect_query(Query):
                         tf = self.my_index.reversed_index[word][doc]
                         doc_list[doc][word] = self.ponderation(tf, df, ponderation)
         for doc in doc_list:
-            doc_list[doc]['cos'] = self.cosinus(self.indexed_query, doc_list[doc], doc, 'tf_idf') 
+            doc_list[doc]['cos'] = self.cosinus(self.indexed_query, doc_list[doc], doc, 'tf_idf')
         return doc_list
 
     def ponderation(self, tf, df, pond_type):

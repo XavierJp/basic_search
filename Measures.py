@@ -3,9 +3,11 @@
 # Imports
 # -------
 from Index import Index
+import os
 from Vect_query import Vect_query
 from Query_set import Query_set
 from Bool_query import Bool_query
+import matplotlib.pyplot as plt
 
 # Class
 # ------------------------------
@@ -19,44 +21,125 @@ class Measures:
     def __init__(self, index, query_set):
         self.set = query_set
         self.index = index
+        self.measures_dict = self.aggregates_results()
+        self.plot_rappel_precision(self.measures_dict)
 
     def __str__(self):
         return str(self.aggregates_results())
 
     def aggregates_results(self):
         """ aggregates rappel and precision over all dataset """
-        compared_res = {}
-        for q_id in self.set.queries.keys():
-            compared_res[q_id] = self.computes_measures(q_id)
-        return compared_res
+        # clean shell
+        clear = lambda: os.system('clear')
+        coordinates_w = []
+        coordinates_tf = []
+        count = 0
+        local_coords = []
+        for q_id in range(1, 64):
+            clear()
+            print '|> processing query number '+str(q_id)+' out of 64'
 
-    def computes_measures(self, q_id):
+            if len(self.set.results[str(q_id)]):
+                measures = self.compute_measures(str(q_id))
+            else:
+                pass
+            local_coords_w = self.interpolate(measures['w'])
+            local_coords_tf = self.interpolate(measures['tf_idf'])
+            count += 1
+
+            if len(coordinates_w) == 0:
+                coordinates_w = local_coords_w
+            else:
+                for j in range(0, len(coordinates_w)):
+                    coordinates_w[j] += local_coords_w[j]
+
+            if len(coordinates_tf) == 0:
+                coordinates_tf = local_coords_tf
+            else:
+                for j in range(0, len(coordinates_tf)):
+                    coordinates_tf[j] += local_coords_tf[j]
+
+        # ponderation
+        for j in range(0, 11):
+            coordinates_w[j] = coordinates_w[j] / count
+            coordinates_tf[j] = coordinates_tf[j] / count
+        return {"w": coordinates_w, "tf_idf": coordinates_tf}
+
+    def interpolate(self, coords):
+        """ curve interpolation """
+        interpolated_coords = []
+        # 11 levels of recall
+        for i_rec in xrange(0, 11):
+            precision = 0
+
+            for j in xrange(0, len(coords)):
+
+                if coords[j][0] >= i_rec * 10 and coords[j][1] > precision:
+                    precision = coords[j][1]
+
+            if precision == 0 and i_rec > 0:
+                precision = interpolated_coords[-1]
+
+            # add i-eme level of recall, with highest precision
+            interpolated_coords.append(precision)
+        return interpolated_coords
+
+    def compute_measures(self, q_id):
         """ calculates rappel and precision for tf idf and simple vectoriel """
-        query = self.set.queries[q_id]
-        q_tf = Vect_query(query, self.index, 'tf_idf').results.keys()
-        q_w = Vect_query(query, self.index, 'w').results.keys()
+        # correct result
         q_set = self.set.results[str(q_id)]
-        return {'w': self.rappel_precision(q_set, q_w), 'tf_idf': self.rappel_precision(q_set, q_tf)}
 
-    def fn(self, q_set, q_res):
-        """ false neg. Nb of element in q_set and not in q_res """
-        return len(set(q_set).difference(q_res))
+        # query
+        query = self.set.queries[q_id]
 
-    def fp(self, q_set, q_res):
-        """ false pos. Nb of element in q_res and not in q_set """
-        return len(set(q_res).difference(q_set))
+        # r_k results for simple vectorial and tf_idf
+        q_tf = Vect_query(query, self.index, 'tf_idf').results
+        q_tf = self.sorted_keys(q_tf)
+        q_w = Vect_query(query, self.index, 'w').results
+        q_w = self.sorted_keys(q_w)
+
+        r_p_w = []
+        r_p_tf_idf = []
+        # computes recall-precision for both simmple vect and tf for all rank
+        for i in xrange(1, len(q_w)):
+            r_p_w.append(self.rappel_precision(q_set, q_w[:i], i))
+
+        for j in xrange(1, len(q_tf)):
+            r_p_tf_idf.append(self.rappel_precision(q_set, q_tf[:j], j))
+
+        return {'w': r_p_w, 'tf_idf': r_p_tf_idf}
+
+    def sorted_keys(self, dict_to_order):
+        return sorted(dict_to_order, key=dict_to_order.get, reverse=True)
 
     def tp(self, q_set, q_res):
         """ true pos. Nb of element of q_res that are in q_set """
         return len(set(q_set).intersection(q_res))
 
-    def rappel_precision(self, q_set, q_res):
-        """ nb of relevant docs found compare to all relevant docs"""
+    def rappel_precision(self, q_set, q_res, r_k):
+        """ Rappel : nb of relevant docs found compare to all relevant docs
+            Precision : nb of relevant docs found compare to docs actually found
+        """
         tp = self.tp(q_set, q_res)
-        fn = self.fn(q_set, q_res)
-        fp = self.fp(q_set, q_res)
-        return {"rappel": float(tp)/float((tp+fn)), "precision": float(tp)/float((tp+fn))}
 
+        # recall & precision rank_k
+        recall_K = 100 * tp / len(q_set)
+        precision_K = 100 * tp / r_k
+
+        return [recall_K, precision_K]
+
+    def plot_rappel_precision(self, rappel_precision):
+        """ plot with matpotlib """
+        rappel_11 = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+        precision_w = self.measures_dict['w']
+        precision_tf = self.measures_dict['tf_idf']
+
+        plt.plot(rappel_11, precision_w, rappel_11, precision_tf)
+        plt.ylabel("Rappel")
+        plt.xlabel("Precision")
+        plt.axis([0, 100, 0, 100])
+        plt.grid(True)
+        plt.savefig('./resources/Precision-Rappel.png', format='png')
 
 # Testing
 # ------------------------------

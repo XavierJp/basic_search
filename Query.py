@@ -17,7 +17,7 @@ class Query:
     """
     __metaclass__ = ABCMeta
 
-    def __init__(self, query, index, ponderation='tf-idf'):
+    def __init__(self, query, index, ponderation=''):
         self.my_index = index
         self.config = Config()
         self.indexed_query = self.indexize(query)
