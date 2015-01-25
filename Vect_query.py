@@ -2,7 +2,6 @@
 
 # Imports
 # -------
-from Config import Config
 from Query import Query
 from collections import defaultdict
 from math import sqrt
@@ -36,18 +35,12 @@ class Vect_query(Query):
             return True
         return False
 
-    def execute_query(self, ponderation):
+    def execute_query(self, pond_type):
         """ execute the query search and return results """
         res_temp = defaultdict(int)
 
         # computes a ponderated vector for query
-        query_vect = defaultdict(dict)
-        for w in self.indexed_query:
-            if w in self.my_index.reversed_index:
-                max_tf = max(self.indexed_query.iteritems(), key=operator.itemgetter(1))[1]
-                df = self.my_index.reversed_index[w]['df']
-                tf = self.indexed_query[w]
-                query_vect[w] = self.ponderation(tf, df, max_tf, ponderation)
+        query_vect = self.indexed_query
 
         # computes a ponderated vector and computes cosinus
         doc_vect = defaultdict(dict)
@@ -55,28 +48,46 @@ class Vect_query(Query):
             if word in self.my_index.reversed_index:
                 for doc_id in self.my_index.reversed_index[word]:
                     if doc_id != 'df':
-                        max_tf = self.max_tf(doc_id)
-                        df = self.my_index.reversed_index[word]['df']
-                        tf = self.my_index.reversed_index[word][doc_id]
-                        doc_vect[doc_id][word] = self.ponderation(tf, df, max_tf, ponderation)
+                        doc_vect[doc_id][word] = self.ponderation(word, doc_id, pond_type)
         for doc_id in doc_vect:
-            cos = self.cosinus(query_vect, doc_vect[doc_id], doc_id, ponderation)
-            res_temp[doc_id] = int(100*cos)
+            cos = self.cosinus(query_vect, doc_vect[doc_id], doc_id, pond_type)
+            res_temp[doc_id] = cos
         return res_temp
 
-    def max_tf(self, doc_id):
-        """ computes the max tf amongst words in doc_id """
-        return max(self.my_index.index[doc_id].iteritems(), key=operator.itemgetter(1))[1]
-
-    def ponderation(self, tf, df, max_tf, pond_type):
+    def ponderation(self, word, doc_id, pond_type):
         """ 
             returns ponderation calculation
             either 'w' or 'tf-idf'
         """
         if pond_type == 'tf_idf':
-            return self.tf_log(tf)*self.idf(df)
+            return float(self.tf_idf(word, doc_id))/float(self.max_tf_idf(doc_id))
         elif pond_type == 'w':
+            tf = self.my_index.reversed_index[word][doc_id]
+            max_tf = self.max_tf(doc_id)
             return float(tf)/float(max_tf)
+
+    def tf_idf(self, word, doc_id):
+        df = self.my_index.reversed_index[word]['df']
+        tf = self.my_index.reversed_index[word][doc_id]
+        return self.tf_log(tf)*self.idf(df)
+
+    def max_tf(self, doc_id):
+        """ computes the max tf amongst words in doc_id """
+        max_tf = int(self.my_index.index[doc_id]["w_max"])
+        return max_tf
+
+    def max_tf_idf(self, doc_id):
+        if 'max_tf_idf' in self.my_index.index[doc_id]:
+            return self.my_index.index[doc_id]['max_tf_idf']
+        else:
+            max_tf_idf = 0
+            for word in self.my_index.index[doc_id]:
+                if word != 'w_max':
+                    tf_idf = self.tf_idf(word, doc_id)
+                    if tf_idf > max_tf_idf:
+                        max_tf_idf = tf_idf
+            self.my_index.index[doc_id]['max_tf_idf'] = max_tf_idf
+            return max_tf_idf
 
     def cosinus(self, indexed_query, indexed_doc, doc_id, pond_type):
         """ computes cosinus calculation """
@@ -95,15 +106,10 @@ class Vect_query(Query):
     def norm_doc_vect(self, doc_id, pond_type):
         """ computes norm """
         n = 0
-        for w, freq in self.my_index.index[doc_id].iteritems():
-            if pond_type == 'tf_idf':
-                df = self.my_index.reversed_index[w]['df']
-                tf = freq
-                tf_idf = self.tf_log(tf)*self.idf(df)
-                n += pow(tf_idf, 2)
-            elif pond_type == 'w':
-                w = freq/self.max_tf(doc_id)
-                n += pow(w, 2)
+        for w in self.my_index.index[doc_id].keys():
+            if w not in ['w_max', 'max_tf_idf']:
+                freq = self.ponderation(w, doc_id, pond_type)
+                n += pow(freq, 2)
         return sqrt(float(n))
 
     def tf_log(self, tf):

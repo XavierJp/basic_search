@@ -35,32 +35,30 @@ class Measures:
         coordinates_tf = []
         count = 0
         local_coords = []
-        for q_id in range(1, 64):
+        for q_id in xrange(1, 65):
             clear()
             print '|> processing query number '+str(q_id)+' out of 64'
 
             if len(self.set.results[str(q_id)]):
                 measures = self.compute_measures(str(q_id))
-            else:
-                pass
-            local_coords_w = self.interpolate(measures['w'])
-            local_coords_tf = self.interpolate(measures['tf_idf'])
-            count += 1
+                local_coords_w = self.interpolate(measures['w'])
+                local_coords_tf = self.interpolate(measures['tf_idf'])
+                count += 1
 
-            if len(coordinates_w) == 0:
-                coordinates_w = local_coords_w
-            else:
-                for j in range(0, len(coordinates_w)):
-                    coordinates_w[j] += local_coords_w[j]
+                if len(coordinates_w) == 0:
+                    coordinates_w = local_coords_w
+                else:
+                    for j in xrange(0, len(coordinates_w)):
+                        coordinates_w[j] += local_coords_w[j]
 
-            if len(coordinates_tf) == 0:
-                coordinates_tf = local_coords_tf
-            else:
-                for j in range(0, len(coordinates_tf)):
-                    coordinates_tf[j] += local_coords_tf[j]
+                if len(coordinates_tf) == 0:
+                    coordinates_tf = local_coords_tf
+                else:
+                    for j in xrange(0, len(coordinates_tf)):
+                        coordinates_tf[j] += local_coords_tf[j]
 
         # ponderation
-        for j in range(0, 11):
+        for j in xrange(0, 11):
             coordinates_w[j] = coordinates_w[j] / count
             coordinates_tf[j] = coordinates_tf[j] / count
         return {"w": coordinates_w, "tf_idf": coordinates_tf}
@@ -134,12 +132,16 @@ class Measures:
         precision_w = self.measures_dict['w']
         precision_tf = self.measures_dict['tf_idf']
 
-        plt.plot(rappel_11, precision_w, rappel_11, precision_tf)
+        plt.plot(rappel_11, precision_w, label='Simple vectorial ponderation')
+        plt.plot(rappel_11, precision_tf, label='tf-idf ponderation')
+        plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
+           ncol=2, mode="expand", borderaxespad=0.)
         plt.ylabel("Rappel")
         plt.xlabel("Precision")
         plt.axis([0, 100, 0, 100])
         plt.grid(True)
         plt.savefig('./resources/Precision-Rappel.png', format='png')
+        print 'Curve has been saved in resources folder.'
 
 # Testing
 # ------------------------------

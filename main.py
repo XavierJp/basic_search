@@ -12,6 +12,7 @@ from Vect_query import Vect_query
 from Measures import Measures
 from Query_set import Query_set
 from Bool_query import Bool_query
+from Probabilistic_query import Probabilistic_query
 import operator
 
 
@@ -53,17 +54,23 @@ def execute_query(cacm_index, q_set, input_var):
     elif input_var == '5':
         result = Vect_query(query_input(VECT), cacm_index, 'w')
     elif input_var == '6':
-        input_q_id = raw_input('Which query_id are you looking for? : ')
-        print q_set.queries[input_q_id]
-        result = Vect_query(q_set.queries[input_q_id], cacm_index, 'tf_idf')
+        result = Probabilistic_query(query_input(VECT), cacm_index)
     elif input_var == '7':
         input_q_id = raw_input('Which query_id are you looking for? : ')
         print q_set.queries[input_q_id]
-        result = Vect_query(q_set.queries[input_q_id], cacm_index, 'w')
+        result = Vect_query(q_set.queries[input_q_id], cacm_index, 'tf_idf')
     elif input_var == '8':
+        input_q_id = raw_input('Which query_id are you looking for? : ')
+        print q_set.queries[input_q_id]
+        result = Vect_query(q_set.queries[input_q_id], cacm_index, 'w')
+    elif input_var == '9':
+        input_q_id = raw_input('Which query_id are you looking for? : ')
+        print q_set.queries[input_q_id]
+        result = Probabilistic_query(q_set.queries[input_q_id], cacm_index)              
+    elif input_var == '0':
         Measures(cacm_index, q_set)
         tps_chart_fin = time.clock()
-        print "query executed in "+str((tps_chart_fin - tps_q_0))+" sec."
+        print "Chart computed in "+str((tps_chart_fin - tps_q_0))+" sec."
 
     tps_q_fin = time.clock()
 
@@ -100,7 +107,7 @@ def main_loop():
     # returning relevant infos : index size, loading time...
     # ------------------------------------------------------
     tps_index = time.clock()
-    print "cacm file loaded in "+str((tps_index - tps_0))+" sec."
+    print "cacm file loaded and analyzed in "+str((tps_index - tps_0))+" sec."
     print 'index size: ' + str(sys.getsizeof(str(cacm_index.reversed_index))/1000000) + ' Mo'
     print '------------------------'
     print '\n'
@@ -115,13 +122,15 @@ def main_loop():
             '\n' + '3: Execute a boolean query'
             '\n' + '4: Execute a Vectorial query (Tf-idf)'
             '\n' + '5: Execute a Vectorial query (simple vectorial model)'
-            '\n' + '6: Predefined query (Tf-idf)'
-            '\n' + '7: Predefined query (simple vectorial model)'
-            '\n' + '8: Plot Rappel-precision chart'
-            '\n' + 'ENTER: Quitter'
+            '\n' + '6: Execute a Probabilistic query (Binary Independence Retrieval)'
+            '\n' + '7: Predefined query (Tf-idf)'
+            '\n' + '8: Predefined query (simple vectorial model)'
+            '\n' + '9: Execute a Probabilistic query (Binary Independence Retrieval)'
+            '\n' + '0: Plot Rappel-precision chart'
+            '\n' + 'ENTER: Stop'
             '\n' + '------------------------'+'\n'
             '|> ')
-        if input_var in ['1', '2', '3', '4', '5', '6', '7', '8']:
+        if input_var in ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']:
             execute_query(cacm_index, q_set, input_var)
         else:
             break
