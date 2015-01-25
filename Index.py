@@ -64,10 +64,10 @@ class Index:
             word = word.lower()
             if not self.compare(word):
                 # populate doc_index
-                self.populate_index(self.reversed_index, word, doc_id)
-                self.populate_index(self.index, doc_id, word)
+                self.populate_index(self.reversed_index, word, doc_id, True)
+                self.populate_index(self.index, doc_id, word, False)
 
-    def populate_index(self, index, k1, k2):
+    def populate_index(self, index, k1, k2, compute_df):
         """ 
             generic function to create index.
             Index and reversed index have the same structure
@@ -75,7 +75,8 @@ class Index:
         if k1 not in index:
             index[k1] = defaultdict(int)
         index[k1][k2] += 1
-        index[k1]['df'] += 1
+        if compute_df:
+            index[k1]['df'] += 1
 
     def compare(self, element):
         """ 

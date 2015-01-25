@@ -97,7 +97,6 @@ def main_loop():
     cacm_index = Index()
     q_set = Query_set()
 
-
     # returning relevant infos : index size, loading time...
     # ------------------------------------------------------
     tps_index = time.clock()
@@ -112,7 +111,7 @@ def main_loop():
     while input_var != '0':
         input_var = raw_input('What do you want to do now ? ' + '\n'
             '\n' + '1: Search a document by docID'
-            '\n' + '2: Look for documents a word belongs to'
+            '\n' + '2: Search for document where a word occurs'
             '\n' + '3: Execute a boolean query'
             '\n' + '4: Execute a Vectorial query (Tf-idf)'
             '\n' + '5: Execute a Vectorial query (simple vectorial model)'
@@ -121,7 +120,7 @@ def main_loop():
             '\n' + '8: Plot Rappel-precision chart'
             '\n' + 'ENTER: Quitter'
             '\n' + '------------------------'+'\n'
-            )
+            '|> ')
         if input_var in ['1', '2', '3', '4', '5', '6', '7', '8']:
             execute_query(cacm_index, q_set, input_var)
         else:

@@ -38,52 +38,72 @@ class Vect_query(Query):
 
     def execute_query(self, ponderation):
         """ execute the query search and return results """
-        results_temp = defaultdict(float)
-        doc_list = defaultdict(dict)
+        res_temp = defaultdict(int)
+
+        # computes a ponderated vector for query
+        query_vect = defaultdict(dict)
+        for w in self.indexed_query:
+            if w in self.my_index.reversed_index:
+                max_tf = max(self.indexed_query.iteritems(), key=operator.itemgetter(1))[1]
+                df = self.my_index.reversed_index[w]['df']
+                tf = self.indexed_query[w]
+                query_vect[w] = self.ponderation(tf, df, max_tf, ponderation)
+
+        # computes a ponderated vector and computes cosinus
+        doc_vect = defaultdict(dict)
         for word in self.indexed_query:
             if word in self.my_index.reversed_index:
-                for doc in self.my_index.reversed_index[word]:
-                    if doc != 'df':
+                for doc_id in self.my_index.reversed_index[word]:
+                    if doc_id != 'df':
+                        max_tf = self.max_tf(doc_id)
                         df = self.my_index.reversed_index[word]['df']
-                        tf = self.my_index.reversed_index[word][doc]
-                        doc_list[doc][word] = self.ponderation(tf, df, ponderation)
-        for doc in doc_list:
-            doc_list[doc]['cos'] = self.cosinus(self.indexed_query, doc_list[doc], doc, 'tf_idf')
-        return doc_list
+                        tf = self.my_index.reversed_index[word][doc_id]
+                        doc_vect[doc_id][word] = self.ponderation(tf, df, max_tf, ponderation)
+        for doc_id in doc_vect:
+            cos = self.cosinus(query_vect, doc_vect[doc_id], doc_id, ponderation)
+            res_temp[doc_id] = int(100*cos)
+        return res_temp
 
-    def ponderation(self, tf, df, pond_type):
+    def max_tf(self, doc_id):
+        """ computes the max tf amongst words in doc_id """
+        return max(self.my_index.index[doc_id].iteritems(), key=operator.itemgetter(1))[1]
+
+    def ponderation(self, tf, df, max_tf, pond_type):
         """ 
-            return ponderation calculation
+            returns ponderation calculation
             either 'w' or 'tf-idf'
         """
         if pond_type == 'tf_idf':
             return self.tf_log(tf)*self.idf(df)
         elif pond_type == 'w':
-            max_w = max(self.my_index.index.iteritems(), key=operator.itemgetter(1))[0]
-            return float(tf)/float(max_w)
+            return float(tf)/float(max_tf)
 
     def cosinus(self, indexed_query, indexed_doc, doc_id, pond_type):
-        """ compute cosinus calculation """
+        """ computes cosinus calculation """
         p = 0
-        norm_q = 0
+        norm_query = 0
         for w, w_freq in indexed_query.iteritems():
             if w in indexed_doc.keys():
                 p += float(w_freq)*float(indexed_doc[w])
-            norm_q += int(w_freq) ^ 2
+            norm_query += pow(w_freq, 2)
         if p != 0:
-            norm_q = sqrt(norm_q)
-            return float(float(p)/(norm_q*self.norm(doc_id, pond_type)))
+            norm_query = sqrt(norm_query)
+            return float(float(p)/(norm_query*self.norm_doc_vect(doc_id, pond_type)))
         else:
             return 0
 
-    def norm(self, doc_id, pond_type):
-        """ compute norm """
+    def norm_doc_vect(self, doc_id, pond_type):
+        """ computes norm """
         n = 0
         for w, freq in self.my_index.index[doc_id].iteritems():
             if pond_type == 'tf_idf':
-                n += freq ^ 2
+                df = self.my_index.reversed_index[w]['df']
+                tf = freq
+                tf_idf = self.tf_log(tf)*self.idf(df)
+                n += pow(tf_idf, 2)
             elif pond_type == 'w':
-                n += freq ^ 2
+                w = freq/self.max_tf(doc_id)
+                n += pow(w, 2)
         return sqrt(float(n))
 
     def tf_log(self, tf):
@@ -93,4 +113,4 @@ class Vect_query(Query):
             return 0
 
     def idf(self, df):
-        return log10(float(int(self.my_index.N)/float(df)))
+        return log10(float(int(self.my_index.N))/float(df))
