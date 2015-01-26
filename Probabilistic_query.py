@@ -37,8 +37,8 @@ class Probabilistic_query(Query):
             if w in self.my_index.reversed_index:
                 for doc_id in self.my_index.reversed_index[w]:
                     if doc_id != 'df':
-                        df = float(self.my_index.reversed_index[w]['df'])
+                        df = float(len(self.my_index.reversed_index[w]))
                         N = float(int(self.my_index.N))
-                        res_temp[doc_id] += log_p + log10((N-df)/df)
+                        res_temp[doc_id] += log_p + log10(N/df)
         return res_temp
 

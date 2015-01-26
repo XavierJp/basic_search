@@ -20,7 +20,7 @@ class Vect_query(Query):
     """
 
     def indexize(self, query):
-        """ trnasform the query from a string to a word index """
+        """ transform the query from a string to a word index """
         query_index = defaultdict(int)
         wordsBuffer = re.findall(r"[a-zA-Z0-9]+", query)
         for word in wordsBuffer:
@@ -41,14 +41,22 @@ class Vect_query(Query):
 
         # computes a ponderated vector for query
         query_vect = self.indexed_query
+        for w in query_vect:
+            if pond_type == 'tf_idf':
+                if w in self.my_index.reversed_index:
+                    tf = float(query_vect[w])
+                    df = len(self.my_index.reversed_index[w])
+                    N = float(self.my_index.N)
+                    query_vect[w] = (1+log10(df))*log10((N)/df)
+            elif w not in self.my_index.reversed_index:
+                query_vect[w] = 0
 
         # computes a ponderated vector and computes cosinus
         doc_vect = defaultdict(dict)
         for word in self.indexed_query:
             if word in self.my_index.reversed_index:
                 for doc_id in self.my_index.reversed_index[word]:
-                    if doc_id != 'df':
-                        doc_vect[doc_id][word] = self.ponderation(word, doc_id, pond_type)
+                    doc_vect[doc_id][word] = self.ponderation(word, doc_id, pond_type)
         for doc_id in doc_vect:
             cos = self.cosinus(query_vect, doc_vect[doc_id], doc_id, pond_type)
             res_temp[doc_id] = cos
@@ -67,7 +75,7 @@ class Vect_query(Query):
             return float(tf)/float(max_tf)
 
     def tf_idf(self, word, doc_id):
-        df = self.my_index.reversed_index[word]['df']
+        df = len(self.my_index.reversed_index[word])
         tf = self.my_index.reversed_index[word][doc_id]
         return self.tf_log(tf)*self.idf(df)
 
@@ -88,24 +96,18 @@ class Vect_query(Query):
         """ computes cosinus calculation """
         p = 0
         norm_query = 0
+        norm_doc = 0
         for w, w_freq in indexed_query.iteritems():
             if w in indexed_doc.keys():
                 p += float(w_freq)*float(indexed_doc[w])
+                norm_doc += pow(indexed_doc[w], 2)
             norm_query += pow(w_freq, 2)
         if p != 0:
             norm_query = sqrt(norm_query)
-            return float(float(p)/(norm_query*self.norm_doc_vect(doc_id, pond_type)))
+            norm_doc = sqrt(norm_doc)
+            return float(float(p)/(norm_query*norm_doc))
         else:
             return 0
-
-    def norm_doc_vect(self, doc_id, pond_type):
-        """ computes norm """
-        n = 0
-        for w in self.my_index.index[doc_id].keys():
-            if w not in ['w_max', 'max_tf_idf']:
-                freq = self.ponderation(w, doc_id, pond_type)
-                n += pow(freq, 2)
-        return sqrt(float(n))
 
     def tf_log(self, tf):
         if tf > 0:

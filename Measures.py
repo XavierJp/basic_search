@@ -133,9 +133,9 @@ class Measures:
         plt.plot(rappel_11, precision_tf, label='tf-idf')
         plt.plot(rappel_11, precision_proba, label='Probabilistic')
         plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3, ncol=3, mode="expand", borderaxespad=0.)
-        plt.ylabel("Rappel")
-        plt.xlabel("Precision")
-        plt.axis([0, 100, 0, 100])
+        plt.ylabel("Precision")
+        plt.xlabel("Rappel")
+        plt.axis([0, 100, 0, 65])
         plt.grid(True)
         plt.savefig('./resources/Precision-Rappel.png', format='png')
         print 'Curve has been saved in resources folder.'

@@ -77,9 +77,7 @@ class Index:
             if not compute_df:
                 index[k1]['w_max'] = 0
         index[k1][k2] += 1
-        if compute_df:
-            index[k1]['df'] += 1
-        else:
+        if not compute_df:
             if index[k1][k2] > index[k1]['w_max']:
                 index[k1]['w_max'] = index[k1][k2]
 
