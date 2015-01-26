@@ -19,6 +19,8 @@ import operator
 BOOL = "Please type your query like this : OR(A,AND(C,NOT(B))) :"
 VECT = "Please type your query  :"
 
+# clean shell
+clear = lambda: os.system('clear')
 
 def print_results(result, cacm_index, pos0):
     """ when called, print ten results """
@@ -66,17 +68,19 @@ def execute_query(cacm_index, q_set, input_var):
     elif input_var == '9':
         input_q_id = raw_input('Which query_id are you looking for? : ')
         print q_set.queries[input_q_id]
-        result = Probabilistic_query(q_set.queries[input_q_id], cacm_index)              
+        result = Probabilistic_query(q_set.queries[input_q_id], cacm_index)
     elif input_var == '0':
+        clear()
         Measures(cacm_index, q_set)
         tps_chart_fin = time.clock()
-        print "Chart computed in "+str((tps_chart_fin - tps_q_0))+" sec."
+        print "Chart computed in "+"{:2.2f}".format(tps_chart_fin - tps_q_0)+" sec."
 
     tps_q_fin = time.clock()
 
     if result:
+        clear()
         print '------------------------'
-        print "query executed in "+str((tps_q_fin - tps_q_0))+" sec."
+        print "query executed in "+"{:2.2f}".format(tps_q_fin - tps_q_0)+" sec."
         print str(len(result.results))+" result(s) found."
         if len(result.results) > 10:
             print "Only first ten results are being displayed."
@@ -92,9 +96,6 @@ def execute_query(cacm_index, q_set, input_var):
             else:
                 break
 
-    return '8'
-
-
 def main_loop():
     """ creates a basic user interface """
     tps_0 = time.clock()
@@ -107,15 +108,17 @@ def main_loop():
     # returning relevant infos : index size, loading time...
     # ------------------------------------------------------
     tps_index = time.clock()
-    print "cacm file loaded and analyzed in "+str((tps_index - tps_0))+" sec."
-    print 'index size: ' + str(sys.getsizeof(str(cacm_index.reversed_index))/1000000) + ' Mo'
-    print '------------------------'
+    clear()
+    print "cacm file loaded and analyzed in "+"{:2.3f}".format(tps_index - tps_0)+" sec."
+    print 'reverted index size: ' + "{:2.2f}".format(float(sys.getsizeof(str(cacm_index.reversed_index)))/1000000)+ ' Mo'
+    print 'index size: ' + "{:2.2f}".format(float(sys.getsizeof(str(cacm_index.index)))/1000000) + ' Mo'
+    print '-----------------------------'
     print '\n'
 
     # choices
     # -------
-    input_var = 'ini'
-    while input_var != '0':
+    input_var = '0'
+    while input_var in ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']:
         input_var = raw_input('What do you want to do now ? ' + '\n'
             '\n' + '1: Search a document by docID'
             '\n' + '2: Search for document where a word occurs'
@@ -125,7 +128,7 @@ def main_loop():
             '\n' + '6: Execute a Probabilistic query (Binary Independence Retrieval)'
             '\n' + '7: Predefined query (Tf-idf)'
             '\n' + '8: Predefined query (simple vectorial model)'
-            '\n' + '9: Execute a Probabilistic query (Binary Independence Retrieval)'
+            '\n' + '9: Predefined query (Binary Independence Retrieval)'
             '\n' + '0: Plot Rappel-precision chart'
             '\n' + 'ENTER: Stop'
             '\n' + '------------------------'+'\n'

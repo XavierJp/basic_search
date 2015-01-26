@@ -63,18 +63,13 @@ class Vect_query(Query):
             return float(self.tf_idf(word, doc_id))/float(self.max_tf_idf(doc_id))
         elif pond_type == 'w':
             tf = self.my_index.reversed_index[word][doc_id]
-            max_tf = self.max_tf(doc_id)
+            max_tf = self.my_index.index[doc_id]["w_max"]
             return float(tf)/float(max_tf)
 
     def tf_idf(self, word, doc_id):
         df = self.my_index.reversed_index[word]['df']
         tf = self.my_index.reversed_index[word][doc_id]
         return self.tf_log(tf)*self.idf(df)
-
-    def max_tf(self, doc_id):
-        """ computes the max tf amongst words in doc_id """
-        max_tf = int(self.my_index.index[doc_id]["w_max"])
-        return max_tf
 
     def max_tf_idf(self, doc_id):
         if 'max_tf_idf' in self.my_index.index[doc_id]:
@@ -119,4 +114,4 @@ class Vect_query(Query):
             return 0
 
     def idf(self, df):
-        return log10(float(int(self.my_index.N))/float(df))
+        return log10(float(self.my_index.N)/float(df))

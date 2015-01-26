@@ -7,6 +7,7 @@ import os
 from Vect_query import Vect_query
 from Query_set import Query_set
 from Bool_query import Bool_query
+from Probabilistic_query import Probabilistic_query
 import matplotlib.pyplot as plt
 
 # Class
@@ -31,37 +32,34 @@ class Measures:
         """ aggregates rappel and precision over all dataset """
         # clean shell
         clear = lambda: os.system('clear')
-        coordinates_w = []
-        coordinates_tf = []
-        count = 0
-        local_coords = []
-        for q_id in xrange(1, 65):
-            clear()
-            print '|> processing query number '+str(q_id)+' out of 64'
+        res = {}
 
-            if len(self.set.results[str(q_id)]):
-                measures = self.compute_measures(str(q_id))
-                local_coords_w = self.interpolate(measures['w'])
-                local_coords_tf = self.interpolate(measures['tf_idf'])
-                count += 1
+        for pond in ['w', 'tf_idf', 'proba']:
 
-                if len(coordinates_w) == 0:
-                    coordinates_w = local_coords_w
-                else:
-                    for j in xrange(0, len(coordinates_w)):
-                        coordinates_w[j] += local_coords_w[j]
+            coordinates = []
+            count = 0
+            local_coords = []
+            for q_id in xrange(1, 65):
+                clear()
+                print '|> processing query number '+str(q_id)+' out of 64'+' ['+pond+']'
 
-                if len(coordinates_tf) == 0:
-                    coordinates_tf = local_coords_tf
-                else:
-                    for j in xrange(0, len(coordinates_tf)):
-                        coordinates_tf[j] += local_coords_tf[j]
+                if len(self.set.results[str(q_id)]):
+                    measures = self.compute_measures(str(q_id), pond)
+                    local_coords = self.interpolate(measures)
+                    count += 1
 
-        # ponderation
-        for j in xrange(0, 11):
-            coordinates_w[j] = coordinates_w[j] / count
-            coordinates_tf[j] = coordinates_tf[j] / count
-        return {"w": coordinates_w, "tf_idf": coordinates_tf}
+                    if len(coordinates) == 0:
+                        coordinates = local_coords
+                    else:
+                        for j in xrange(0, len(coordinates)):
+                            coordinates[j] += local_coords[j]
+            # ponderation
+            for j in xrange(0, 11):
+                coordinates[j] = coordinates[j] / count
+
+            res[pond] = coordinates
+
+        return res
 
     def interpolate(self, coords):
         """ curve interpolation """
@@ -82,7 +80,7 @@ class Measures:
             interpolated_coords.append(precision)
         return interpolated_coords
 
-    def compute_measures(self, q_id):
+    def compute_measures(self, q_id, pond):
         """ calculates rappel and precision for tf idf and simple vectoriel """
         # correct result
         q_set = self.set.results[str(q_id)]
@@ -91,21 +89,19 @@ class Measures:
         query = self.set.queries[q_id]
 
         # r_k results for simple vectorial and tf_idf
-        q_tf = Vect_query(query, self.index, 'tf_idf').results
-        q_tf = self.sorted_keys(q_tf)
-        q_w = Vect_query(query, self.index, 'w').results
-        q_w = self.sorted_keys(q_w)
+        if pond in ['tf_idf', 'w']:
+            q = Vect_query(query, self.index, pond).results
+        elif pond == 'proba':
+            q = Probabilistic_query(query, self.index).results
 
-        r_p_w = []
-        r_p_tf_idf = []
+        q = self.sorted_keys(q)
+
+        r = []
         # computes recall-precision for both simmple vect and tf for all rank
-        for i in xrange(1, len(q_w)):
-            r_p_w.append(self.rappel_precision(q_set, q_w[:i], i))
+        for i in xrange(1, len(q)):
+            r.append(self.rappel_precision(q_set, q[:i], i))
 
-        for j in xrange(1, len(q_tf)):
-            r_p_tf_idf.append(self.rappel_precision(q_set, q_tf[:j], j))
-
-        return {'w': r_p_w, 'tf_idf': r_p_tf_idf}
+        return r
 
     def sorted_keys(self, dict_to_order):
         return sorted(dict_to_order, key=dict_to_order.get, reverse=True)
@@ -131,11 +127,12 @@ class Measures:
         rappel_11 = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
         precision_w = self.measures_dict['w']
         precision_tf = self.measures_dict['tf_idf']
+        precision_proba = self.measures_dict['proba']
 
-        plt.plot(rappel_11, precision_w, label='Simple vectorial ponderation')
-        plt.plot(rappel_11, precision_tf, label='tf-idf ponderation')
-        plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
-           ncol=2, mode="expand", borderaxespad=0.)
+        plt.plot(rappel_11, precision_w, label='Simple')
+        plt.plot(rappel_11, precision_tf, label='tf-idf')
+        plt.plot(rappel_11, precision_proba, label='Probabilistic')
+        plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3, ncol=3, mode="expand", borderaxespad=0.)
         plt.ylabel("Rappel")
         plt.xlabel("Precision")
         plt.axis([0, 100, 0, 100])
