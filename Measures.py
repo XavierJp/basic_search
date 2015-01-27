@@ -139,6 +139,18 @@ class Measures:
         plt.grid(True)
         plt.savefig('./resources/Precision-Rappel.png', format='png')
         print 'Curve has been saved in resources folder.'
+        print '\n'+'Mean Average Precision'
+        print '----------------------'
+        print 'Simple vector model: '+"{:2.2f}".format(self.MAP(precision_w))
+        print 'Tf-idf model: '+"{:2.2f}".format(self.MAP(precision_tf))
+        print 'Probabilistic model: '+"{:2.2f}".format(self.MAP(precision_proba))
+
+    def MAP(self, l):
+        m = 0
+        n = len(l)
+        for i in l:
+            m += i
+        return float(m)/(100*n)
 
 # Testing
 # ------------------------------

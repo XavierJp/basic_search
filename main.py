@@ -28,6 +28,7 @@ def print_results(result, cacm_index, pos0):
     for pos, doc in enumerate(reversed(sorted(result.results.items(), key=operator.itemgetter(1)))):
         if pos >= pos0 and pos < curr_pos:
             print " - "+doc[0]+" : "+cacm_index.get_title_by_doc_id(doc[0], ['.T'])
+    print '\n'
     return(- 1 if (curr_pos > len(result.results)) else curr_pos)
 
 
@@ -73,7 +74,7 @@ def execute_query(cacm_index, q_set, input_var):
         clear()
         Measures(cacm_index, q_set)
         tps_chart_fin = time.clock()
-        print "Chart computed in "+"{:2.2f}".format(tps_chart_fin - tps_q_0)+" sec."
+        print "\n"+"Chart computed in "+"{:2.2f}".format(tps_chart_fin - tps_q_0)+" sec."+"\n"
 
     tps_q_fin = time.clock()
 
@@ -91,7 +92,7 @@ def execute_query(cacm_index, q_set, input_var):
         while keep_going == 'Y':
             curr_print_pos = print_results(result, cacm_index, curr_print_pos)
             if curr_print_pos != -1:
-                keep_going = raw_input('Would you like to diplay ten more? (Y/N): ')
+                keep_going = raw_input('Would you like to diplay more results? (Y/N): ')
                 print '----------------------------------------'
             else:
                 break
@@ -113,13 +114,12 @@ def main_loop():
     print 'reverted index size: ' + "{:2.2f}".format(float(sys.getsizeof(str(cacm_index.reversed_index)))/1000000)+ ' Mo'
     print 'index size: ' + "{:2.2f}".format(float(sys.getsizeof(str(cacm_index.index)))/1000000) + ' Mo'
     print '-----------------------------'
-    print '\n'
 
     # choices
     # -------
     input_var = '0'
     while input_var in ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']:
-        input_var = raw_input('What do you want to do now ? ' + '\n'
+        input_var = raw_input('What do you want to do? ' + '\n'
             '\n' + '1: Search a document by docID'
             '\n' + '2: Search for document where a word occurs'
             '\n' + '3: Execute a boolean query'
