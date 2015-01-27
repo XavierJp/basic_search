@@ -139,11 +139,28 @@ class Measures:
         plt.grid(True)
         plt.savefig('./resources/Precision-Rappel.png', format='png')
         print 'Curve has been saved in resources folder.'
-        print '\n'+'Mean Average Precision'
-        print '----------------------'
+        print '\n'+'Mean Average Precision :'
+        print '------------------------'
         print 'Simple vector model: '+"{:2.2f}".format(self.MAP(precision_w))
         print 'Tf-idf model: '+"{:2.2f}".format(self.MAP(precision_tf))
         print 'Probabilistic model: '+"{:2.2f}".format(self.MAP(precision_proba))
+        print '\n'
+        print 'E-measure and F-measure on average :'
+        print '------------------------------------'
+        self.compute_E(precision_w)
+
+    def compute_E(self, precision):
+        F = 0
+        E = 0
+        rappel_11 = [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+        for i in xrange(0, 10):
+            beta = (float(precision[i])/100)/rappel_11[i]
+            alpha = 1.0/float((pow(beta, 2)+1.0))
+            F += 1.0/(alpha/(float(precision[i])/100)+(1.0-alpha)/float(rappel_11[i]))
+            E += 1.0 - F
+        print 'E-measure: '+"{:2.2f}".format(E/11)
+        print 'F-measure: '+"{:2.2f}".format(F/11)
+
 
     def MAP(self, l):
         m = 0

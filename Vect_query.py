@@ -105,9 +105,22 @@ class Vect_query(Query):
         if p != 0:
             norm_query = sqrt(norm_query)
             norm_doc = sqrt(norm_doc)
-            return float(float(p)/(norm_query*norm_doc))
+            return float(float(p)/(norm_query*self.norm(indexed_doc, doc_id, pond_type)))
         else:
             return 0
+
+    def norm(self, indexed_doc, doc_id, pond_type):
+        if doc_id in self.my_index.norms[pond_type]:
+            return self.my_index.norms[pond_type][doc_id]
+        else:
+            n = 0
+            for w in self.my_index.reversed_index.keys():
+                if w in indexed_doc.keys():
+                    freq = self.ponderation(w, doc_id, pond_type)
+                    n += pow(freq, 2)
+            norm = sqrt(n)
+            self.my_index.norms[pond_type][doc_id] = norm
+            return norm
 
     def tf_log(self, tf):
         if tf > 0:

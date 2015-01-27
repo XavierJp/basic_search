@@ -36,6 +36,9 @@ def query_input(string):
     print('------------------------')
     return raw_input(string)
 
+def press_key():
+    keep_going = raw_input('Press any key to continue : '+'\n'+'--------------------------'+'\n'+'|>')
+    clear()
 
 def execute_query(cacm_index, q_set, input_var):
     """ when called, fetches and prints the results """
@@ -47,9 +50,11 @@ def execute_query(cacm_index, q_set, input_var):
     if input_var == '1':
         input_doc_id = raw_input('Document ID you are looking for : ')
         print cacm_index.search_a_doc_id(input_doc_id)
+        press_key()
     elif input_var == '2':
         input_word = raw_input('Word you are looking for : ')
         print cacm_index.search_a_word(input_word)
+        press_key()
     elif input_var == '3':
         result = Bool_query(query_input(BOOL), cacm_index)
     elif input_var == '4':
@@ -75,6 +80,10 @@ def execute_query(cacm_index, q_set, input_var):
         Measures(cacm_index, q_set)
         tps_chart_fin = time.clock()
         print "\n"+"Chart computed in "+"{:2.2f}".format(tps_chart_fin - tps_q_0)+" sec."+"\n"
+        press_key()
+
+
+
 
     tps_q_fin = time.clock()
 
@@ -94,7 +103,10 @@ def execute_query(cacm_index, q_set, input_var):
             if curr_print_pos != -1:
                 keep_going = raw_input('Would you like to diplay more results? (Y/N): ')
                 print '----------------------------------------'
+                if keep_going != 'Y':
+                    clear()
             else:
+                press_key()
                 break
 
 def main_loop():

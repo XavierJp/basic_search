@@ -25,6 +25,7 @@ class Index:
         self.my_dict = {}
         self.index = {}
         self.load_file(self.my_config.path)
+        self.norms = {'w': {}, 'tf_idf': {}}
         self.N = len(self.my_dict.keys())
 
     def __str__(self):
